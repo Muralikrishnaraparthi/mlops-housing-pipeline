@@ -205,3 +205,20 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# MLOps Specific Ignores
+mlruns/           # MLflow experiment tracking directory
+data/processed/   # Directory for processed data (if you don't want to track all processed files with Git)
+*.log             # Log files
+.dvc/             # DVC internal directory
+data/raw/.gitignore # DVC often creates these
+data/processed/.gitignore # DVC often creates these
+
+# Additional common Python ignores (ensure these are present)
+venv/             # Python virtual environment
+.env/             # For environment variables
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
