@@ -1,5 +1,5 @@
 # Use an official Python 3.10 runtime based on Debian Bookworm (Debian 12)
-FROM python:3.10-slim-bookworm # <--- CHANGE THIS LINE TO PYTHON 3.10
+FROM python:3.10-slim-bookworm
 
 # ... (rest of the Dockerfile remains the same as our last working version)
 
