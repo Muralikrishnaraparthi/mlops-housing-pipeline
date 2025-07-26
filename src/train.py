@@ -1,5 +1,5 @@
 import mlflow
-import mlflow.sklearn # Specific MLflow module for scikit-learn models
+import mlflow.sklearn  # Specific MLflow module for scikit-learn models
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -15,12 +15,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # --- IMPORTANT: Configure MLflow Tracking URI to point to the Dockerized server ---
-os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
+os.environ["MLFLOW_TRACKING_URI"] = "http://127.0.0.1:5000"
+# os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
 logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
 
-#mlflow.set_experiment("California Housing Training")
+mlflow.set_experiment("California Housing Training")
 
-def train_and_log_model(model_name, X_train, X_test, y_train, y_test, params):
+def train_and_log_model(model_name, X_train_scaled, X_test_scaled, y_train, y_test, params):
     """
     Trains a specified regression model, evaluates its performance,
     and logs parameters, metrics, and the model itself to MLflow.
@@ -38,8 +39,8 @@ def train_and_log_model(model_name, X_train, X_test, y_train, y_test, params):
         else:
             raise ValueError(f"Unsupported model name: {model_name}")
 
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
+        model.fit(X_train_scaled, y_train)
+        predictions = model.predict(X_test_scaled)
 
         mae = mean_absolute_error(y_test, predictions)
         mse = mean_squared_error(y_test, predictions)
@@ -56,9 +57,8 @@ def train_and_log_model(model_name, X_train, X_test, y_train, y_test, params):
         mlflow.log_metrics(metrics)
         logger.info(f"Logged metrics: {metrics}")
 
-        # Fix: Use X_test (scaled) for signature
         from mlflow.models import infer_signature
-        signature = infer_signature(X_test, predictions)
+        signature = infer_signature(X_test_scaled, predictions)
 
         mlflow.sklearn.log_model(
             sk_model=model,
@@ -77,13 +77,13 @@ def train_and_log_model(model_name, X_train, X_test, y_train, y_test, params):
 if __name__ == "__main__":
     logger.info("--- Starting Model Training Script ---")
 
-    X_train, X_test, y_train, y_test = load_and_prepare_data()
+    X_train_scaled, X_test_scaled, y_train, y_test = load_and_prepare_data()
     logger.info("Data loaded and preprocessed successfully.")
 
     linear_reg_params = {"fit_intercept": True}
     logger.info("Training Linear Regression model...")
     lr_rmse = train_and_log_model(
-        "LinearRegression", X_train, X_test, y_train, y_test, linear_reg_params
+        "LinearRegression", X_train_scaled, X_test_scaled, y_train, y_test, linear_reg_params
     )
     logger.info(f"Linear Regression RMSE: {lr_rmse:.4f}")
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     }
     logger.info("Training Random Forest Regressor model...")
     rf_rmse = train_and_log_model(
-        "RandomForestRegressor", X_train, X_test, y_train, y_test, random_forest_params
+        "RandomForestRegressor", X_train_scaled, X_test_scaled, y_train, y_test, random_forest_params
     )
     logger.info(f"Random Forest Regressor RMSE: {rf_rmse:.4f}")
 
