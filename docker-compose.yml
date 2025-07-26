@@ -1,0 +1,44 @@
+version: '3.8' # Use a recent Docker Compose file format version
+
+services:
+  # MLflow Tracking Server Service
+  mlflow-server:
+    image: mlflow/mlflow:2.13.0 # Or 2.12.2 if 2.13.0 consistently fails to pull
+    container_name: mlflow-tracking-server
+    ports:
+      - "5000:5000" # Expose to host
+    volumes:
+      - mlflow_data:/mlruns # Use the named volume
+    command: mlflow ui --host 0.0.0.0 --backend-store-uri file:///mlruns
+    healthcheck: # Optional: Add a healthcheck for better orchestration
+      test: ["CMD-SHELL", "curl -f http://localhost:5000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mlops-network # Attach to our custom network
+
+  # Your ML Model API Service
+  mlops-api:
+    build:
+      context: . # Build from the current directory (where Dockerfile is)
+      dockerfile: Dockerfile
+    container_name: mlops-housing-api-container
+    ports:
+      - "5001:5000" # Map host port 5001 to container port 5000 for the API
+                   # MLflow is already on 5000. Use 5001 to avoid conflict.
+    environment:
+      # Set MLFLOW_TRACKING_URI for the API container to use the service name
+      MLFLOW_TRACKING_URI: http://mlflow-server:5000 # <-- Resolved by Docker Compose!
+    depends_on:
+      mlflow-server: # Ensure MLflow server starts before the API
+        condition: service_healthy # Wait for healthcheck to pass
+    networks:
+      - mlops-network # Attach to our custom network
+
+volumes:
+  mlflow_data: # Define the named volume for MLflow persistence
+
+networks:
+  mlops-network: # Define our custom network
+    driver: bridge
