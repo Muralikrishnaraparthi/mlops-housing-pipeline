@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 # MLflow Model Configuration
 MODEL_NAME = "CaliforniaHousingRegressor"
 MODEL_STAGE = "Production" # Using Model Stage (e.g., Production, Staging)
-# Corrected URI format for loading by stage: models:/<model_name>/<stage_name>
 MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 
 # Uncommented alias lines (good, leave them commented/deleted)
@@ -26,7 +25,8 @@ MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 # When MLflow UI is running on your host machine's localhost,
 # Docker containers need to use 'host.docker.internal' to reach it.
 # Ensure your MLflow UI is running (mlflow ui in host terminal).
-os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-tracking-server:5000"
+os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
+# os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-tracking-server:5000"
 logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
 
 # Scaler Path (relative to the container's working directory /app)

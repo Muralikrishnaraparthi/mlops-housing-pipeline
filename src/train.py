@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 # --- IMPORTANT: Configure MLflow Tracking URI to point to the Dockerized server ---
 # The container name 'mlflow-tracking-server' acts as its hostname on the Docker network.
-os.environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"
+os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
+# os.environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"
 logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
 
 # This will create the experiment if it doesn't exist, and then activate it.
