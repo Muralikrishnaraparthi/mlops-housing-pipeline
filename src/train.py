@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 os.environ["MLFLOW_TRACKING_URI"] = "http://localhost:5000"
 logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
 
+# This will create the experiment if it doesn't exist, and then activate it.
+mlflow.set_experiment("California Housing Training")
 
 def train_and_log_model(model_name, X_train, X_test, y_train, y_test, params):
     """
