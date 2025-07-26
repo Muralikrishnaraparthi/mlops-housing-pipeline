@@ -1,0 +1,98 @@
+name: MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main # Trigger on pull requests to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # GitHub-hosted runner with Ubuntu OS
+    environment: development # Use GitHub Environments (optional, can be skipped for simple assignments)
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Needed for DVC to work correctly (to fetch full Git history for DVC references)
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # IMPORTANT: Match your Dockerfile's Python version (3.10)
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Install project requirements, flake8 for linting, pytest for testing, gunicorn for local deploy test
+        pip install -r requirements.txt
+        pip install flake8 pytest gunicorn "dvc[s3]" # DVC is needed to pull data for tests/build
+
+    - name: DVC Pull Data and Scaler
+      run: dvc pull --verbose --force # Use --force to prevent issues if files exist
+      # On the GitHub Actions runner, DVC will create its cache and pull data/scaler here.
+      # If using a DVC remote (e.g., S3), ensure corresponding AWS/cloud credentials are set as GitHub secrets.
+
+    - name: Lint code with Flake8
+      run: |
+        # Exit if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Treat all other errors as warnings, limit line length
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run tests with Pytest
+      run: pytest tests/
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # Uses the secret you set up
+        password: ${{ secrets.DOCKER_PASSWORD }} # Uses the secret you set up
+
+    - name: Build and Push Docker Image
+      uses: docker/build-and-push-action@v5
+      with:
+        context: . # Build context is the current directory (your repo)
+        push: true # Push the image to Docker Hub
+        tags: ${{ secrets.DOCKER_USERNAME }}/mlops-housing-api:latest # Tag with your username and 'latest'
+
+    - name: Stop and Remove Existing Containers (on Runner for local deploy test)
+      # This ensures a clean state before starting new containers on the runner's Docker daemon.
+      run: |
+        docker stop mlflow-tracking-server || true # Stop if running
+        docker rm mlflow-tracking-server || true   # Remove if exists
+        docker stop mlops-housing-api-container || true
+        docker rm mlops-housing-api-container || true
+        # Remove any networks created by previous compose runs (project_network_name)
+        docker network rm mlops-housing-pipeline_mlops-network || true
+
+    - name: Start MLflow Server and API using Docker Compose (Local Deployment Test on Runner)
+      # This step uses your docker-compose.yml to run services directly on the GitHub Actions runner.
+      # For actual cloud deployment (e.g., EC2), this step would involve SSHing to your EC2 instance
+      # and running `docker compose up -d` there, or using cloud-specific deployment actions.
+      run: |
+        docker compose up --build -d # --build ensures any recent changes in Dockerfile are picked up
+        # Wait for services to fully start and API to load model. Adjust sleep time if needed.
+        sleep 45 # Increased sleep time for services to fully initialize
+
+    - name: Check Deployed API Logs (on Runner)
+      run: |
+        docker logs mlops-housing-api-container
+
+    - name: Test Deployed API Health Check (on Runner)
+      run: |
+        # API is exposed on 5001 to the runner's localhost (via compose)
+        curl --fail http://localhost:5001/health # --fail makes curl exit with error on 4xx/5xx
+
+    - name: Test Deployed API Prediction (on Runner)
+      run: |
+        TEST_DATA='[{"MedInc": 8.3252, "HouseAge": 41.0, "AveRooms": 6.984126984126984, "AveBedrms": 1.0238095238095237, "Population": 322.0, "AveOccup": 2.5555555555555554, "Latitude": 37.88, "Longitude": -122.23}]'
+        curl -X POST -H "Content-Type: application/json" -d "$TEST_DATA" http://localhost:5001/predict
+
+    - name: Cleanup Deploy (on Runner)
+      if: always() # This step will run even if previous steps fail, ensuring cleanup
+      run: |
+        docker compose down -v # Stops containers and removes volumes (incl. mlflow_data on runner)
