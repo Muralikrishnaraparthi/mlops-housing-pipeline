@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # MLflow Model Configuration
 MODEL_NAME = "CaliforniaHousingRegressor"
-MODEL_ALIAS = "Production"
+MODEL_ALIAS = "production"
 MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
 
 # --- IMPORTANT: Configure MLflow Tracking URI for Docker Container ---

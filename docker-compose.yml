@@ -2,35 +2,34 @@ version: '3.8'
 
 services:
   mlflow-server:
-    image: ghcr.io/mlflow/mlflow:v2.13.0 # <--- CHANGE THIS LINE (Note the 'v' in v2.13.0 for GHCR tags)
+    image: ghcr.io/mlflow/mlflow:v2.13.0
     container_name: mlflow-tracking-server
     ports:
       - "5000:5000"
     volumes:
       - mlflow_data:/mlruns
     command: mlflow ui --host 0.0.0.0 --backend-store-uri file:///mlruns
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - mlops-network
 
+  # Your ML Model API Service - THIS IS THE SECTION TO REPLACE/ADD
   mlops-api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: mlops-housing-api-container
     ports:
-      - "5001:5000"
+      - "5001:5000" # Map host port 5001 to container port 5000 for the API
+                   # MLflow is already on 5000. Use 5001 to avoid conflict.
     environment:
-      MLFLOW_TRACKING_URI: http://mlflow-server:5000
+      # Set MLFLOW_TRACKING_URI for the API container to use the service name
+      MLFLOW_TRACKING_URI: http://mlflow-server:5000 # <-- Resolved by Docker Compose!
     depends_on:
-      mlflow-server:
-        condition: service_healthy
+      mlflow-server: # Ensure MLflow server starts before the API
+        condition: service_started # CHANGE THIS from service_healthy to service_started
+                                  # because we removed healthcheck from mlflow-server
     networks:
-      - mlops-network
+      - mlops-network # Attach to our custom network
 
 volumes:
   mlflow_data:
