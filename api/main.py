@@ -14,8 +14,13 @@ logger = logging.getLogger(__name__)
 
 # MLflow Model Configuration
 MODEL_NAME = "CaliforniaHousingRegressor"
-MODEL_ALIAS = "production"
-MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
+MODEL_STAGE = "Production" # Using Model Stage (e.g., Production, Staging)
+# Corrected URI format for loading by stage: models:/<model_name>/<stage_name>
+MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
+
+# Uncommented alias lines (good, leave them commented/deleted)
+# MODEL_ALIAS = "production"
+# MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
 
 # --- IMPORTANT: Configure MLflow Tracking URI for Docker Container ---
 # When MLflow UI is running on your host machine's localhost,
@@ -45,7 +50,8 @@ def load_artifacts():
         logger.info("Attempting to load artifacts...")
         logger.info(f"Loading MLflow model from URI: {MLFLOW_MODEL_URI}")
         model = mlflow.pyfunc.load_model(model_uri=MLFLOW_MODEL_URI)
-        logger.info(f"MLflow model '{MODEL_NAME}' with alias '{MODEL_ALIAS}' loaded successfully.")
+        # Update logging message to reflect loading by stage
+        logger.info(f"MLflow model '{MODEL_NAME}' with stage '{MODEL_STAGE}' loaded successfully.") # <--- CORRECTED LOGGING
 
         logger.info(f"Loading scaler from path: {SCALER_CONTAINER_PATH}")
         if os.path.exists(SCALER_CONTAINER_PATH):
@@ -53,7 +59,7 @@ def load_artifacts():
             logger.info(f"Scaler loaded successfully.")
         else:
             logger.error(f"Scaler file NOT FOUND at {SCALER_CONTAINER_PATH}. This is critical.")
-            scaler = None # Ensure scaler is None if not found
+            scaler = None
 
     except Exception as e:
         logger.critical(f"CRITICAL ERROR during artifact loading: {e}", exc_info=True)
