@@ -15,9 +15,11 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install "dvc[s3]"
 
+# Set DVC_GLOBAL_CACHE_DIR here for consistency, it will be overridden by docker-compose if set there
+ENV DVC_GLOBAL_CACHE_DIR=/dvc_cache
+
 COPY . /app
-RUN mkdir -p data/raw data/processed
-RUN dvc pull --force
+
 
 EXPOSE 5000
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "api.main:app"]
