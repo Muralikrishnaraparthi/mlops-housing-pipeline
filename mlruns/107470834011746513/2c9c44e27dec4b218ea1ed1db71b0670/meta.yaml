@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/107470834011746513/2c9c44e27dec4b218ea1ed1db71b0670/artifacts
+end_time: 1753720746093
+entry_point_name: ''
+experiment_id: '107470834011746513'
+lifecycle_stage: active
+run_id: 2c9c44e27dec4b218ea1ed1db71b0670
+run_name: LinearRegression_California_Housing_Run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1753720733336
+status: 3
+tags: []
+user_id: mural

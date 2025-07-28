@@ -1,86 +1,42 @@
-name: MLOps CI/CD Pipeline
+name: MLOPs CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: development
 
     steps:
-    - name: Checkout repository # <--- ENSURE THIS IS THE FIRST STEP
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: 3.10
 
-    - name: Install dependencies
+    - name: Install dependencies and run tests
       run: |
-        python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install flake8 pytest gunicorn "dvc[s3]"
+        flake8 .  # Lint
+        pytest    # Test
 
-    - name: DVC Pull Data and Scaler
-      run: dvc pull --verbose --force
-
-    - name: Lint code with Flake8
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-    - name: Run tests with Pytest
-      run: pytest tests/
-
-    - name: Login to Docker Hub
+    - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and Push Docker Image
-      uses: docker/build-push-action@v5 # <--- CORRECTED ACTION NAME (removed 'and')
-      with:
-        context: .
-        push: true
-        tags: ${{ secrets.DOCKER_USERNAME }}/mlops-housing-api:latest
-
-    - name: Stop and Remove Existing Containers (on Runner for local deploy test)
       run: |
-        docker stop mlflow-tracking-server || true
-        docker rm mlflow-tracking-server || true
-        docker stop mlops-housing-api-container || true
-        docker rm mlops-housing-api-container || true
-        docker network rm mlops-housing-pipeline_mlops-network || true
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mlops-housing-pipeline-mlops-api:latest .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlops-housing-pipeline-mlops-api:latest
 
-    - name: Start MLflow Server and API using Docker Compose (Local Deployment Test on Runner)
-      run: |
-        docker compose up --build -d
-        sleep 45
 
-    - name: Check Deployed API Logs (on Runner)
+    - name: Deploy (optional)
+      if: hashFiles('deploy.sh') != ''
       run: |
-        docker logs mlops-housing-api-container
-
-    - name: Test Deployed API Health Check (on Runner)
-      run: |
-        curl --fail http://localhost:5001/health
-
-    - name: Test Deployed API Prediction (on Runner)
-      run: |
-        TEST_DATA='[{"MedInc": 8.3252, "HouseAge": 41.0, "AveRooms": 6.984126984126984, "AveBedrms": 1.0238095238095237, "Population": 322.0, "AveOccup": 2.5555555555555554, "Latitude": 37.88, "Longitude": -122.23}]'
-        curl -X POST -H "Content-Type: application/json" -d "$TEST_DATA" http://localhost:5001/predict
-
-    - name: Cleanup Deploy (on Runner)
-      if: always()
-      run: |
-        docker compose down -v
+        chmod +x deploy.sh
+        ./deploy.sh

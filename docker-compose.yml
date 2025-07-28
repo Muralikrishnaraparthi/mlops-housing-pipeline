@@ -21,6 +21,7 @@ services:
     ports:
       - "5001:5000"
     environment:
+      # MLFLOW_TRACKING_URI: http://127.0.0.0:5000
       MLFLOW_TRACKING_URI: http://mlflow-server:5000
       # Inform DVC inside the container to use the mounted cache
       DVC_GLOBAL_CACHE_DIR: /dvc_cache

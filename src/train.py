@@ -15,7 +15,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # --- IMPORTANT: Configure MLflow Tracking URI to point to the Dockerized server ---
-os.environ["MLFLOW_TRACKING_URI"] = "http://127.0.0.1:5000"
+# os.environ["MLFLOW_TRACKING_URI"] = "http://127.0.0.1:5000"
+os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
 # os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
 logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
 

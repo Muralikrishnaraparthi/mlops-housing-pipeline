@@ -21,8 +21,8 @@ MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 # When MLflow UI is running as a separate service in Docker Compose,
 # containers communicate using service names.
 # Use 'mlflow-server' as defined in your docker-compose.yml
-os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000" # <--- CORRECTED LINE
-# os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000" # This is for host machine access
+# os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
+os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000" # This is for host machine access
 
 logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
 
@@ -123,6 +123,16 @@ def health_check():
     else:
         logger.warning(f"Health check: Model loaded: {model is not None}, Scaler loaded: {scaler is not None}")
         return jsonify({'status': 'unhealthy', 'model_loaded': (model is not None), 'scaler_loaded': (scaler is not None)}), 503
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("logs/predictions.log"),
+        logging.StreamHandler()
+    ]
+)
 
 if __name__ == '__main__':
     logger.info("Starting Flask app in debug mode for local testing (NOT Gunicorn)...")
