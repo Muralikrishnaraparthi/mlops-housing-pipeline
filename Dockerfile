@@ -21,5 +21,10 @@ ENV DVC_GLOBAL_CACHE_DIR=/dvc_cache
 COPY . /app
 
 
+RUN dvc config cache.dir /dvc_cache
+RUN dvc config remote.d_drive_remote.url /dvc_remote
+RUN dvc config core.remote d_drive_remote
+RUN dvc pull
+
 EXPOSE 5000
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "api.main:app"]
