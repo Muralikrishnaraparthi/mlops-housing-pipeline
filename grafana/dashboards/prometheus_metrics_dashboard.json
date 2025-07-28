@@ -1,0 +1,45 @@
+{
+  "id": null,
+  "title": "FastAPI Monitoring",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Prediction Request Count",
+      "targets": [
+        {
+          "expr": "prediction_requests_total",
+          "legendFormat": "Total Requests",
+          "refId": "A"
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Request Latency",
+      "targets": [
+        {
+          "expr": "request_latency_seconds",
+          "legendFormat": "Latency",
+          "refId": "B"
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 9
+      }
+    }
+  ],
+  "schemaVersion": 16,
+  "version": 1,
+  "editable": true
+}

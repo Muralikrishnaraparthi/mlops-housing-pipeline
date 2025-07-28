@@ -1,7 +1,0 @@
-[core]
-    remote = d_drive_remote
-    hardlink_lock = true
-[cache]
-    dir = D:\DVC_Cache_Housing
-['remote "d_drive_remote"']
-    url = D:\DVC_Remote_Housing_Data
