@@ -30,7 +30,7 @@ RUN ls -l data/processed/ || true
 
 # Pull DVC-tracked data into the container's workspace (/app/data)
 # This uses the DVC cache/remote mounted from your D: drive.
-RUN dvc pull --force
+# RUN dvc pull --force
 
 RUN echo "--- After DVC Pull (inside container) ---"
 RUN ls -l data/raw/

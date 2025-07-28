@@ -1,42 +1,78 @@
 version: '3.8'
 
 services:
-  mlflow-server:
-    image: ghcr.io/mlflow/mlflow:v2.13.0
-    container_name: mlflow-tracking-server
-    ports:
-      - "5000:5000"
-    volumes:
-      # Mount MLflow data to a specific path on your D drive
-      - D:/mlflow_artifacts_on_D_drive:/mlruns
-    command: mlflow server --host 0.0.0.0 --backend-store-uri sqlite:////mlruns/mlflow.db --default-artifact-root file:///mlruns --serve-artifacts
-    networks:
-      - mlops-network
-
   mlops-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mlops-housing-api-container
+    image: muralikrishnaraparthi/mlops-housing-pipeline-mlops-api:latest
+    container_name: mlops-api
     ports:
       - "5001:5000"
-    environment:
-      # MLFLOW_TRACKING_URI: http://127.0.0.0:5000
-      MLFLOW_TRACKING_URI: http://mlflow-server:5000
-      # Inform DVC inside the container to use the mounted cache
-      DVC_GLOBAL_CACHE_DIR: /dvc_cache
-    depends_on:
-      mlflow-server:
-        condition: service_started
-    networks:
-      - mlops-network
+    expose:
+      - "5000"
+    restart: always
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
     volumes:
-      # Mount your DVC cache from D drive
-      - D:/DVC_Cache_Housing:/dvc_cache
-      # Mount your DVC remote data (actual data files) from D drive
-      - D:/DVC_Remote_Housing_Data:/dvc_remote
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - mlops-api
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana-storage:
 
 
-networks:
-  mlops-network:
-    driver: bridge
+# version: '3.8'
+
+# services:
+#   mlflow-server:
+#     image: ghcr.io/mlflow/mlflow:v2.13.0
+#     container_name: mlflow-tracking-server
+#     ports:
+#       - "5000:5000"
+#     volumes:
+#       # Mount MLflow data to a specific path on your D drive
+#       - D:/mlflow_artifacts_on_D_drive:/mlruns
+#     command: mlflow server --host 0.0.0.0 --backend-store-uri sqlite:////mlruns/mlflow.db --default-artifact-root file:///mlruns --serve-artifacts
+#     networks:
+#       - mlops-network
+
+#   mlops-api:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     container_name: mlops-housing-api-container
+#     ports:
+#       - "5001:5000"
+#     environment:
+#       # MLFLOW_TRACKING_URI: http://127.0.0.0:5000
+#       MLFLOW_TRACKING_URI: http://mlflow-server:5000
+#       # Inform DVC inside the container to use the mounted cache
+#       DVC_GLOBAL_CACHE_DIR: /dvc_cache
+#     depends_on:
+#       mlflow-server:
+#         condition: service_started
+#     networks:
+#       - mlops-network
+#     volumes:
+#       # Mount your DVC cache from D drive
+#       - D:/DVC_Cache_Housing:/dvc_cache
+#       # Mount your DVC remote data (actual data files) from D drive
+#       - D:/DVC_Remote_Housing_Data:/dvc_remote
+
+
+# networks:
+#   mlops-network:
+#     driver: bridge
