@@ -66,14 +66,23 @@ model = None
 scaler = None
 
 # --- Prometheus Metrics ---
-prediction_requests_total = Counter('prediction_requests_total', 'Total
-prediction requests')
-prediction_success_total = Counter('prediction_success_total', 'Successful
-predictions')
-prediction_error_total = Counter('prediction_error_total', 'Failed
-predictions')
-prediction_latency_seconds = Summary('prediction_latency_seconds', 'Prediction
-latency in seconds')
+prediction_requests_total = Counter(
+    'prediction_requests_total',
+    'Total prediction requests'
+)
+prediction_success_total = Counter(
+    'prediction_success_total',
+    'Successful predictions'
+)
+prediction_error_total = Counter(
+    'prediction_error_total',
+    'Failed predictions'
+)
+prediction_latency_seconds = Summary(
+    'prediction_latency_seconds',
+    'Prediction latency in seconds'
+)
+
 
 # --- Load Artifacts ---
 def load_artifacts():

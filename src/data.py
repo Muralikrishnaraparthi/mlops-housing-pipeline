@@ -27,7 +27,9 @@ def load_raw_data_and_save():
         df.to_csv(RAW_DATA_PATH, index=False)
         print(f"Raw data saved to {RAW_DATA_PATH}")
     else:
-        print(f"Raw data already exists at {RAW_DATA_PATH}. Loading from file.")
+        print(f"Raw data already exists at {RAW_DATA_PATH}. "
+        "Loading from file."
+        )
 
     df = pd.read_csv(RAW_DATA_PATH)
     if "MedHouseVal" in df.columns:
