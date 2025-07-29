@@ -12,6 +12,8 @@ import joblib
 from pydantic import BaseModel, Field, ValidationError
 from prometheus_client import Counter, Summary, generate_latest
 
+# --- Ensure logs directory exists ---
+os.makedirs("logs", exist_ok=True)
 
 # --- Logging Setup ---
 logging.basicConfig(
