@@ -14,12 +14,14 @@ from sklearn.metrics import (
 
 from src.data import load_and_prepare_data, SCALER_PATH
 
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 # Set MLflow Tracking URI
 os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
@@ -34,14 +36,12 @@ def train_and_log_model(
     X_test_scaled,
     y_train,
     y_test,
-    params,
+    params
 ):
     """
     Train a regression model, evaluate it, and log to MLflow.
     """
-    with mlflow.start_run(
-        run_name=f"{model_name}_California_Housing_Run"
-    ):
+    with mlflow.start_run(run_name=f"{model_name}_California_Housing_Run"):
         logger.info(f"Starting MLflow run for {model_name}...")
 
         mlflow.log_params(params)
@@ -66,7 +66,7 @@ def train_and_log_model(
             "mae": mae,
             "mse": mse,
             "rmse": rmse,
-            "r2_score": r2,
+            "r2_score": r2
         }
 
         mlflow.log_metrics(metrics)
@@ -79,7 +79,7 @@ def train_and_log_model(
             sk_model=model,
             artifact_path="model",
             registered_model_name="CaliforniaHousingRegressor",
-            signature=signature,
+            signature=signature
         )
         logger.info(
             f"Model '{model_name}' logged and registered as "
@@ -107,14 +107,14 @@ if __name__ == "__main__":
         X_test_scaled,
         y_train,
         y_test,
-        linear_reg_params,
+        linear_reg_params
     )
     logger.info(f"Linear Regression RMSE: {lr_rmse:.4f}")
 
     random_forest_params = {
         "n_estimators": 100,
         "max_depth": 10,
-        "random_state": 42,
+        "random_state": 42
     }
     logger.info("Training Random Forest Regressor model...")
     rf_rmse = train_and_log_model(
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         X_test_scaled,
         y_train,
         y_test,
-        random_forest_params,
+        random_forest_params
     )
     logger.info(f"Random Forest Regressor RMSE: {rf_rmse:.4f}")
 

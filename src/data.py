@@ -6,6 +6,7 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+
 # --- Configuration Paths ---
 RAW_DATA_PATH = "data/raw/california_housing.csv"
 PROCESSED_DATA_DIR = "data/processed"
@@ -28,9 +29,9 @@ def load_raw_data_and_save():
         print(f"Raw data saved to {RAW_DATA_PATH}")
     else:
         print(
-        f"Raw data already exists at {RAW_DATA_PATH}. "
-        "Loading from file."
-    )
+            f"Raw data already exists at {RAW_DATA_PATH}. "
+            "Loading from file."
+        )
 
     df = pd.read_csv(RAW_DATA_PATH)
     if "MedHouseVal" in df.columns:

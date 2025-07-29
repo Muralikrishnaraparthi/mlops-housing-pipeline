@@ -12,6 +12,7 @@ import joblib
 from pydantic import BaseModel, Field, ValidationError
 from prometheus_client import Counter, Summary, generate_latest
 
+
 # --- Logging Setup ---
 logging.basicConfig(
     level=logging.INFO,
@@ -22,6 +23,7 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
 
 # --- SQLite Logging ---
 def log_to_sqlite(input_data: dict, output_data: list):
@@ -47,6 +49,7 @@ def log_to_sqlite(input_data: dict, output_data: list):
     conn.commit()
     conn.close()
 
+
 # --- MLflow Configuration ---
 MODEL_NAME = "CaliforniaHousingRegressor"
 MODEL_STAGE = "Production"
@@ -64,6 +67,7 @@ EXPECTED_FEATURES = [
 app = Flask(__name__)
 model = None
 scaler = None
+
 
 # --- Prometheus Metrics ---
 prediction_requests_total = Counter(
@@ -104,8 +108,10 @@ def load_artifacts():
         model = None
         scaler = None
 
+
 with app.app_context():
     load_artifacts()
+
 
 # --- Input Schemas ---
 class HousingFeatures(BaseModel):
@@ -118,8 +124,10 @@ class HousingFeatures(BaseModel):
     Latitude: float = Field(..., ge=-90, le=90)
     Longitude: float = Field(..., ge=-180, le=180)
 
+
 class PredictionInput(BaseModel):
     instances: List[HousingFeatures]
+
 
 # --- Prediction Endpoint ---
 @app.route('/predict', methods=['POST'])
@@ -163,7 +171,6 @@ def predict():
             f"[PREDICT-SCALED] {input_scaled_df.to_dict(orient='records')}"
         )
 
-
         predictions = model.predict(input_scaled_df)
         prediction_output = predictions.tolist()
 
@@ -178,6 +185,7 @@ def predict():
         prediction_error_total.inc()
         return jsonify({'error': f'Internal error: {str(e)}'}), 500
 
+
 # --- Health Check ---
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -186,6 +194,7 @@ def health_check():
         'model_loaded': model is not None,
         'scaler_loaded': scaler is not None
     }), 200 if model and scaler else 503
+
 
 # --- Prometheus Metrics Endpoint ---
 @app.route('/metrics', methods=['GET'])
@@ -197,3 +206,4 @@ def metrics():
 if __name__ == '__main__':
     logger.info("Starting Flask app...")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
