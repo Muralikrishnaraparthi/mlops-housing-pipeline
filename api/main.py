@@ -36,9 +36,14 @@ def log_to_sqlite(input_data: dict, output_data: list):
         )
     """)
     timestamp = datetime.utcnow().isoformat()
-    cursor.execute("INSERT INTO predictions (timestamp, input, output) VALUES (?, ?, ?)", (
-        timestamp, str(input_data), str(output_data)
-    ))
+    cursor.execute(
+        "INSERT INTO predictions (timestamp, input, output) VALUES (?, ?, ?)",
+        (
+            timestamp,
+            str(input_data),
+            str(output_data)
+        )
+    )
     conn.commit()
     conn.close()
 
@@ -61,10 +66,14 @@ model = None
 scaler = None
 
 # --- Prometheus Metrics ---
-prediction_requests_total = Counter('prediction_requests_total', 'Total prediction requests')
-prediction_success_total = Counter('prediction_success_total', 'Successful predictions')
-prediction_error_total = Counter('prediction_error_total', 'Failed predictions')
-prediction_latency_seconds = Summary('prediction_latency_seconds', 'Prediction latency in seconds')
+prediction_requests_total = Counter('prediction_requests_total', 'Total
+prediction requests')
+prediction_success_total = Counter('prediction_success_total', 'Successful
+predictions')
+prediction_error_total = Counter('prediction_error_total', 'Failed
+predictions')
+prediction_latency_seconds = Summary('prediction_latency_seconds', 'Prediction
+latency in seconds')
 
 # --- Load Artifacts ---
 def load_artifacts():
@@ -105,7 +114,7 @@ class PredictionInput(BaseModel):
 
 # --- Prediction Endpoint ---
 @app.route('/predict', methods=['POST'])
-@prediction_latency_seconds.time()  # ⏱️ latency tracking
+@prediction_latency_seconds.time()
 def predict():
     logger.info("Received prediction request.")
     prediction_requests_total.inc()
@@ -126,15 +135,21 @@ def predict():
         except ValidationError as e:
             logger.error(f"Validation failed: {e.errors()}")
             prediction_error_total.inc()
-            return jsonify({'error': 'Validation failed', 'details': e.errors()}), 422
+            return jsonify({'error': 'Validation failed', 'details':
+            e.errors()}), 422
 
         input_df = pd.DataFrame(data_for_df)
         input_df = input_df[EXPECTED_FEATURES]
         logger.info(f"[PREDICT-INPUT] {input_df.to_dict(orient='records')}")
 
         input_scaled_array = scaler.transform(input_df)
-        input_scaled_df = pd.DataFrame(input_scaled_array, columns=EXPECTED_FEATURES, index=input_df.index)
-        logger.info(f"[PREDICT-SCALED] {input_scaled_df.to_dict(orient='records')}")
+        input_scaled_df = pd.DataFrame(
+            input_scaled_array,
+            columns=EXPECTED_FEATURES,
+            index=input_df.index
+        )
+        logger.info(f"[PREDICT-SCALED]
+        {input_scaled_df.to_dict(orient='records')}")
 
         predictions = model.predict(input_scaled_df)
         prediction_output = predictions.tolist()
