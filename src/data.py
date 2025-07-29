@@ -70,7 +70,7 @@ if __name__ == "__main__":
     print("\n--- Running Data Processing Script ---")
     X_train, X_test, y_train, y_test = load_and_prepare_data()
 
-    print(f"\nData Loading and Preprocessing Complete:")
+    print("\nData Loading and Preprocessing Complete:")
     print(f"  Raw data file: {RAW_DATA_PATH}")
     print(f"  Fitted scaler file: {SCALER_PATH}")
     print(f"  X_train shape: {X_train.shape}")
