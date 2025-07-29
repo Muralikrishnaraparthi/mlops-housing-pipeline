@@ -1,37 +1,103 @@
 version: '3.8'
 
 services:
+  # MLflow Tracking Server Service
+  mlflow-tracking-server:
+    image: ghcr.io/mlflow/mlflow:v2.13.0 # Consider changing to :latest if you hit .NET 3.1 error again
+    container_name: mlflow-tracking-server
+    ports:
+      - "5000:5000" # Expose to host so you can access UI at http://127.0.0.1:5000
+    environment:
+      # MLflow backend store for metadata (SQLite in this case, stored in mounted volume)
+      - MLFLOW_BACKEND_STORE_URI=sqlite:////mlruns/mlflow.db
+      # MLflow artifact store for models, plots, etc. (stored in mounted volume)
+      - MLFLOW_ARTIFACT_STORE_URI=file:///mlflow_artifacts
+    volumes:
+      # Persist MLflow run metadata and SQLite database
+      - D:/mlflow_data/mlruns:/mlruns
+      # Persist MLflow artifacts (models, plots, etc.)
+      - D:/mlflow_data/artifacts:/mlflow_artifacts
+    # Healthcheck to ensure MLflow server is truly ready before the API tries to connect
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5000 || exit 1"]
+      interval: 10s   # Check every 10 seconds
+      timeout: 5s     # Timeout if check takes more than 5 seconds
+      retries: 5      # Retry 5 times before marking unhealthy
+      start_period: 20s # Give MLflow 20 seconds to initially start up before first check
+    networks:
+      - mlops-network
+
+  # MLOps API Service
   mlops-api:
-    image: muralikrishnaraparthi/mlops-housing-pipeline-mlops-api:latest
+    image: muralikrishnaraparthi/mlops-housing-pipeline-mlops-api:latest # Using pre-built image
+    # OR, uncomment below to build from your local Dockerfile:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: mlops-api
     ports:
-      - "5001:5000"
+      - "5001:5000" # Map host port 5001 to container port 5000
     expose:
-      - "5000"
+      - "5000" # Expose container port 5000 within the Docker network
     restart: always
+    environment:
+      # Configure MLflow Tracking URI for inter-container communication
+      MLFLOW_TRACKING_URI: http://mlflow-tracking-server:5000
+      # Environment variables for DVC paths inside the container (useful for debugging/scripts)
+      DVC_CACHE_DIR: /dvc_cache
+      DVC_REMOTE_URL: /dvc_remote
+    volumes:
+      # Mount your DVC cache from D: drive into the container
+      - D:/DVC_Cache_Housing:/dvc_cache
+      # Mount your DVC remote from D: drive into the container
+      - D:/DVC_Remote_Housing_Data:/dvc_remote
+      # Mount your entire project directory into the container.
+      # This is crucial for the API to access the /app/data folder where DVC pulls files.
+      - C:/Users/mural/Documents/dev/mlops-housing-pipeline:/app
+    working_dir: /app # Set the working directory inside the container
+    # Ensure API container waits for MLflow server to be healthy
+    depends_on:
+      mlflow-tracking-server:
+        condition: service_healthy
+    networks:
+      - mlops-network
 
+  # Prometheus Monitoring Service
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     volumes:
+      # Mount your Prometheus configuration file
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "9090:9090" # Expose Prometheus UI on host port 9090
     depends_on:
-      - mlops-api
+      - mlops-api # Prometheus needs the API to be running to scrape metrics
+    networks:
+      - mlops-network
 
+  # Grafana Visualization Service
   grafana:
     image: grafana/grafana
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "3000:3000" # Expose Grafana UI on host port 3000
     volumes:
+      # Persist Grafana data (dashboards, configurations)
       - grafana-storage:/var/lib/grafana
     depends_on:
-      - prometheus
+      - prometheus # Grafana needs Prometheus to be running to get data
+    networks:
+      - mlops-network
 
+# Define named volumes for persistent data
 volumes:
-  grafana-storage:
+  grafana-storage: {} # Docker manages this volume
+
+# Define a custom network for inter-service communication
+networks:
+  mlops-network:
+    driver: bridge
 
 
 # version: '3.8'
