@@ -144,8 +144,10 @@ def predict():
         except ValidationError as e:
             logger.error(f"Validation failed: {e.errors()}")
             prediction_error_total.inc()
-            return jsonify({'error': 'Validation failed', 'details':
-            e.errors()}), 422
+            return jsonify({
+                'error': 'Validation failed',
+                'details': e.errors()
+            }), 422
 
         input_df = pd.DataFrame(data_for_df)
         input_df = input_df[EXPECTED_FEATURES]
@@ -157,8 +159,10 @@ def predict():
             columns=EXPECTED_FEATURES,
             index=input_df.index
         )
-        logger.info(f"[PREDICT-SCALED]
-        {input_scaled_df.to_dict(orient='records')}")
+        logger.info(
+            f"[PREDICT-SCALED] {input_scaled_df.to_dict(orient='records')}"
+        )
+
 
         predictions = model.predict(input_scaled_df)
         prediction_output = predictions.tolist()
