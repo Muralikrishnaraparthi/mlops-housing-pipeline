@@ -19,11 +19,12 @@ os.makedirs(LOG_DIR, exist_ok=True)
 SQLITE_DB_PATH = os.path.abspath(os.path.join(LOG_DIR, "predictions.db"))
 
 # --- Logging Setup ---
+LOG_FILE_PATH = os.path.abspath(os.path.join(LOG_DIR, "predictions.log"))
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("logs/predictions.log"),
+        logging.FileHandler(LOG_FILE_PATH),
         logging.StreamHandler()
     ]
 )
@@ -67,7 +68,6 @@ MODEL_NAME = "CaliforniaHousingRegressor"
 MODEL_STAGE = "Production"
 MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 
-# os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
 os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
 uri = os.environ["MLFLOW_TRACKING_URI"]
 logger.info(f"MLFLOW_TRACKING_URI set to: {uri}")
