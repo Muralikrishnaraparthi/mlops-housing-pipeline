@@ -67,8 +67,8 @@ MODEL_NAME = "CaliforniaHousingRegressor"
 MODEL_STAGE = "Production"
 MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 
-os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
-# os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
+# os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
+os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
 uri = os.environ["MLFLOW_TRACKING_URI"]
 logger.info(f"MLFLOW_TRACKING_URI set to: {uri}")
 
