@@ -12,8 +12,10 @@ import joblib
 from pydantic import BaseModel, Field, ValidationError
 from prometheus_client import Counter, Summary, generate_latest
 
+
 # --- Ensure logs directory exists ---
 os.makedirs("logs", exist_ok=True)
+
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -29,27 +31,33 @@ logger = logging.getLogger(__name__)
 
 # --- SQLite Logging ---
 def log_to_sqlite(input_data: dict, output_data: list):
-    conn = sqlite3.connect("logs/predictions.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS predictions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            input TEXT,
-            output TEXT
+    try:
+        logger.info("Connecting to SQLite DB...")
+        conn = sqlite3.connect("logs/predictions.db")
+        cursor = conn.cursor()
+
+        logger.info("Creating table if not exists...")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS predictions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT,
+                input TEXT,
+                output TEXT
+            )
+        """)
+
+        timestamp = datetime.utcnow().isoformat()
+        logger.info(f"Inserting into DB: {timestamp}")
+        cursor.execute(
+            "INSERT INTO predictions (timestamp, input, output) VALUES (?, ?, ?)",
+            (timestamp, str(input_data), str(output_data))
         )
-    """)
-    timestamp = datetime.utcnow().isoformat()
-    cursor.execute(
-        "INSERT INTO predictions (timestamp, input, output) VALUES (?, ?, ?)",
-        (
-            timestamp,
-            str(input_data),
-            str(output_data)
-        )
-    )
-    conn.commit()
-    conn.close()
+
+        conn.commit()
+        conn.close()
+        logger.info("Successfully logged to SQLite.")
+    except Exception as e:
+        logger.error(f"SQLite logging failed: {e}", exc_info=True)
 
 
 # --- MLflow Configuration ---
@@ -58,7 +66,8 @@ MODEL_STAGE = "Production"
 MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 
 os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
-logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
+uri = os.environ["MLFLOW_TRACKING_URI"]
+logger.info(f"MLFLOW_TRACKING_URI set to: {uri}")
 
 SCALER_CONTAINER_PATH = "data/processed/scaler.pkl"
 EXPECTED_FEATURES = [
@@ -73,20 +82,16 @@ scaler = None
 
 # --- Prometheus Metrics ---
 prediction_requests_total = Counter(
-    'prediction_requests_total',
-    'Total prediction requests'
+    'prediction_requests_total', 'Total prediction requests'
 )
 prediction_success_total = Counter(
-    'prediction_success_total',
-    'Successful predictions'
+    'prediction_success_total', 'Successful predictions'
 )
 prediction_error_total = Counter(
-    'prediction_error_total',
-    'Failed predictions'
+    'prediction_error_total', 'Failed predictions'
 )
 prediction_latency_seconds = Summary(
-    'prediction_latency_seconds',
-    'Prediction latency in seconds'
+    'prediction_latency_seconds', 'Prediction latency in seconds'
 )
 
 
