@@ -14,8 +14,9 @@ from prometheus_client import Counter, Summary, generate_latest
 
 
 # --- Ensure logs directory exists ---
-os.makedirs("logs", exist_ok=True)
-
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+SQLITE_DB_PATH = os.path.abspath(os.path.join(LOG_DIR, "predictions.db"))
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 def log_to_sqlite(input_data: dict, output_data: list):
     try:
         logger.info("Connecting to SQLite DB...")
-        conn = sqlite3.connect("logs/predictions.db")
+        conn = sqlite3.connect(SQLITE_DB_PATH)
         cursor = conn.cursor()
 
         logger.info("Creating table if not exists...")
@@ -53,7 +54,6 @@ def log_to_sqlite(input_data: dict, output_data: list):
             "VALUES (?, ?, ?)",
             (timestamp, str(input_data), str(output_data))
         )
-
 
         conn.commit()
         conn.close()
