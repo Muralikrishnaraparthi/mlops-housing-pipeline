@@ -49,9 +49,11 @@ def log_to_sqlite(input_data: dict, output_data: list):
         timestamp = datetime.utcnow().isoformat()
         logger.info(f"Inserting into DB: {timestamp}")
         cursor.execute(
-            "INSERT INTO predictions (timestamp, input, output) VALUES (?, ?, ?)",
+            "INSERT INTO predictions (timestamp, input, output) "
+            "VALUES (?, ?, ?)",
             (timestamp, str(input_data), str(output_data))
         )
+
 
         conn.commit()
         conn.close()
