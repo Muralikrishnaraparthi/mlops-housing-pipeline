@@ -185,7 +185,9 @@ def predict():
         prediction_output = predictions.tolist()
 
         logger.info(f"[PREDICT-OUTPUT] {prediction_output}")
+        print("Predicted output before logging:", prediction_output)
         log_to_sqlite(input_df.to_dict(orient='records'), prediction_output)
+        print("Predicted output after logging:", prediction_output)
 
         prediction_success_total.inc()
         return jsonify({'predictions': prediction_output})

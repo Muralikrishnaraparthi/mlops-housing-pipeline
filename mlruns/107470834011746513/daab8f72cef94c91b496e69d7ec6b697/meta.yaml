@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/107470834011746513/daab8f72cef94c91b496e69d7ec6b697/artifacts
+end_time: 1753980390704
+entry_point_name: ''
+experiment_id: '107470834011746513'
+lifecycle_stage: active
+run_id: daab8f72cef94c91b496e69d7ec6b697
+run_name: RandomForestRegressor_California_Housing_Run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1753980296129
+status: 3
+tags: []
+user_id: mural
