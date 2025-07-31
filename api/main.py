@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 logger.info(f"Using SQLITE_DB_PATH: {SQLITE_DB_PATH}")
 logger.info(f"Using LOG_FILE_PATH: {LOG_FILE_PATH}")
 
+
 # --- SQLite Logging ---
 def log_to_sqlite(input_data: dict, output_data: list):
     try:
