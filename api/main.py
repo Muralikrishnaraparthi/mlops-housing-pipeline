@@ -18,8 +18,10 @@ LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 SQLITE_DB_PATH = os.path.abspath(os.path.join(LOG_DIR, "predictions.db"))
 
+
 # --- Logging Setup ---
 LOG_FILE_PATH = os.path.abspath(os.path.join(LOG_DIR, "predictions.log"))
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -30,6 +32,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+logger.info(f"Using SQLITE_DB_PATH: {SQLITE_DB_PATH}")
+logger.info(f"Using LOG_FILE_PATH: {LOG_FILE_PATH}")
 
 # --- SQLite Logging ---
 def log_to_sqlite(input_data: dict, output_data: list):
@@ -42,9 +46,9 @@ def log_to_sqlite(input_data: dict, output_data: list):
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS predictions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT,
-                input TEXT,
-                output TEXT
+                timestamp TEXT NOT NULL,
+                input TEXT NOT NULL,
+                output TEXT NOT NULL
             )
         """)
 
@@ -68,6 +72,7 @@ MODEL_NAME = "CaliforniaHousingRegressor"
 MODEL_STAGE = "Production"
 MLFLOW_MODEL_URI = f"models:/{MODEL_NAME}/{MODEL_STAGE}"
 
+# os.environ["MLFLOW_TRACKING_URI"] = "http://127.0.0.1:5000"
 os.environ["MLFLOW_TRACKING_URI"] = "http://host.docker.internal:5000"
 uri = os.environ["MLFLOW_TRACKING_URI"]
 logger.info(f"MLFLOW_TRACKING_URI set to: {uri}")
@@ -185,9 +190,9 @@ def predict():
         prediction_output = predictions.tolist()
 
         logger.info(f"[PREDICT-OUTPUT] {prediction_output}")
-        print("Predicted output before logging:", prediction_output)
+        logger.info(f"Predicted output before logging: {prediction_output}")
         log_to_sqlite(input_df.to_dict(orient='records'), prediction_output)
-        print("Predicted output after logging:", prediction_output)
+        logger.info(f"Predicted output after logging: {prediction_output}")
 
         prediction_success_total.inc()
         return jsonify({'predictions': prediction_output})
