@@ -14,7 +14,8 @@ from prometheus_client import Counter, Summary, generate_latest
 
 
 # --- Ensure logs directory exists ---
-LOG_DIR = "logs"
+# LOG_DIR = "logs"
+LOG_DIR = os.getenv("LOG_DIR", os.path.join(os.getcwd(), "logs"))
 os.makedirs(LOG_DIR, exist_ok=True)
 SQLITE_DB_PATH = os.path.abspath(os.path.join(LOG_DIR, "predictions.db"))
 
