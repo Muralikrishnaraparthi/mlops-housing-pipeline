@@ -20,7 +20,7 @@ services:
     # Healthcheck to ensure MLflow server is truly ready before the API tries to connect
     command: mlflow server --host 0.0.0.0 --backend-store-uri sqlite:////mlruns/mlflow.db --default-artifact-root file:///mlflow_artifacts --serve-artifacts
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -59,9 +59,9 @@ services:
       - C:/Users/mural/Documents/dev/mlops-housing-pipeline/logs:/app/logs
     working_dir: /app # Set the working directory inside the container
     # Ensure API container waits for MLflow server to be healthy
-    depends_on:
-      mlflow-tracking-server:
-        condition: service_healthy
+    # depends_on:
+    #   mlflow-tracking-server:
+    #     condition: service_healthy
     networks:
       - mlops-network
 
