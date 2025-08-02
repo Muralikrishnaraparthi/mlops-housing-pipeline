@@ -103,6 +103,8 @@ prediction_error_total = Counter(
 prediction_latency_seconds = Summary(
     'prediction_latency_seconds', 'Prediction latency in seconds'
 )
+
+
 # --- Load Artifacts ---
 def load_artifacts():
     global model, scaler
@@ -217,6 +219,7 @@ def health_check():
 @app.route('/metrics', methods=['GET'])
 def metrics():
     return Response(generate_latest(), mimetype='text/plain')
+
 
 @app.route("/retrain", methods=["POST"])
 def retrain_model():
