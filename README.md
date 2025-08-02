@@ -1,5 +1,3 @@
-<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/9e0cc49f-3b57-47f1-9c7a-262fed1fd32e" /># 🏠 MLOps Pipeline: California Housing Price Prediction
-
 This project demonstrates a complete **MLOps workflow** for deploying and monitoring a machine learning model that predicts housing prices using the California Housing dataset.
 
 ---
