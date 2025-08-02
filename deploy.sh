@@ -12,6 +12,8 @@ docker rm -f mlops-api || true
 docker run -d \
   --name mlops-api \
   -p 5001:5000 \
+  -v "${PWD}\logs:/app/logs" \
   muralikrishnaraparthi/mlops-housing-pipeline-mlops-api:latest
+
 
 echo "Deployment complete."

@@ -1,3 +1,4 @@
+from asyncio import subprocess
 import os
 import logging
 import sqlite3
@@ -89,7 +90,6 @@ app = Flask(__name__)
 model = None
 scaler = None
 
-
 # --- Prometheus Metrics ---
 prediction_requests_total = Counter(
     'prediction_requests_total', 'Total prediction requests'
@@ -103,8 +103,6 @@ prediction_error_total = Counter(
 prediction_latency_seconds = Summary(
     'prediction_latency_seconds', 'Prediction latency in seconds'
 )
-
-
 # --- Load Artifacts ---
 def load_artifacts():
     global model, scaler
@@ -219,6 +217,12 @@ def health_check():
 @app.route('/metrics', methods=['GET'])
 def metrics():
     return Response(generate_latest(), mimetype='text/plain')
+
+@app.route("/retrain", methods=["POST"])
+def retrain_model():
+    # load new data and call train.py
+    subprocess.call(["python", "src/retrain_trigger.py"])
+    return jsonify({"status": "retraining triggered"})
 
 
 # --- Run App ---

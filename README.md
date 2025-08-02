@@ -1,4 +1,3 @@
-
 # 🏠 MLOps Pipeline: California Housing Price Prediction
 
 This project demonstrates a complete **MLOps workflow** for deploying and monitoring a machine learning model that predicts housing prices using the California Housing dataset.
@@ -11,6 +10,8 @@ This project demonstrates a complete **MLOps workflow** for deploying and monito
 mlops-housing-pipeline/
 ├── api/
 │   └── main.py               # Flask API serving the model
+├── src/
+│   └── data.py               # Data loading, preprocessing, and new data merge
 ├── train.py                  # MLflow-based training and model logging
 ├── retrain_trigger.py        # Auto-retraining on new data detection
 ├── deploy.sh                 # Deployment script using Docker
@@ -18,7 +19,10 @@ mlops-housing-pipeline/
 ├── docker-compose.yml        # Compose stack with API, Prometheus, Grafana
 ├── requirements.txt
 ├── data/
-│   └── new_data/             # Drop new CSV files here to trigger retrain
+│   ├── raw/                  # Initial dataset (auto-generated if missing)
+│   ├── processed/            # Stores scaler.pkl
+│   ├── new_data/             # Drop new CSV files here to trigger retrain
+│   └── archive/              # Stores processed new_data files
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml         # GitHub Actions pipeline
@@ -32,6 +36,7 @@ mlops-housing-pipeline/
 - Loads model from MLflow Registry (Production stage)
 - Applies preprocessing with a stored `scaler.pkl`
 - Input validation via `pydantic`
+- Optional SQLite logging and Prometheus metrics
 
 ### ✅ CI/CD with GitHub Actions
 - Linting with `flake8`, testing with `pytest`
@@ -45,14 +50,16 @@ mlops-housing-pipeline/
   - Request latency
 - Grafana visualizes real-time API performance
 
-### ✅ Logging
-- File logs: `logs/predictions.log`
-- Structured SQLite logs: `logs/predictions.db`
-
 ### ✅ Automatic Retraining Trigger
 - `retrain_trigger.py` monitors `data/new_data/`
 - New `.csv` triggers model retraining via `train.py`
 - Updated model pushed to MLflow Registry
+
+### ✅ Deployment Helper Script
+- `deploy.sh` provides a simple command-line tool to:
+  - Pull the latest Docker image from Docker Hub
+  - Run the container locally with environment setup
+  - Test the API without needing full GitHub workflow or rebuild
 
 ---
 
@@ -60,7 +67,7 @@ mlops-housing-pipeline/
 
 ### 🚢 Run with Docker Compose
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 - API: [http://localhost:5001](http://localhost:5001)
@@ -68,12 +75,20 @@ docker-compose up --build
 - Grafana: [http://localhost:3000](http://localhost:3000)
   - Default login: `admin / admin`
 
-### 🔁 Retraining Trigger
-Start the retraining watcher in another terminal:
+### 🔁 Automatic Retraining
+In another terminal, start the retraining watcher:
 ```bash
 python retrain_trigger.py
 ```
-Drop a `.csv` into `data/new_data/` to trigger automatic retraining.
+
+Then drop any valid `.csv` into `data/new_data/`.
+
+✅ If valid columns are detected, new data will be:
+- Merged with existing data in `data/raw/`
+- Used to retrain the model
+- New model logged to MLflow Registry
+
+🗂 The processed file is archived under `data/archive/`.
 
 ---
 
@@ -84,6 +99,17 @@ Drop a `.csv` into `data/new_data/` to trigger automatic retraining.
 | `/predict`      | POST   | Predict housing price from features |
 | `/health`       | GET    | Check model/scaler health status    |
 | `/metrics`      | GET    | Prometheus metrics endpoint         |
+| `/retrain`      | POST   | *(Optional)* Trigger model retraining manually |
+
+---
+
+## 📁 Valid Input Format (New Data)
+
+```csv
+MedInc,HouseAge,AveRooms,AveBedrms,Population,AveOccup,Latitude,Longitude,target
+8.3252,41,6.9841,1.0238,322,2.5556,37.88,-122.23,4.526
+...
+```
 
 ---
 

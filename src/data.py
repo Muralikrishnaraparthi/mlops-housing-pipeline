@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import joblib
 import pandas as pd
 from sklearn.datasets import fetch_california_housing
@@ -12,11 +12,19 @@ RAW_DATA_PATH = "data/raw/california_housing.csv"
 PROCESSED_DATA_DIR = "data/processed"
 SCALER_FILENAME = "scaler.pkl"
 SCALER_PATH = os.path.join(PROCESSED_DATA_DIR, SCALER_FILENAME)
+NEW_DATA_DIR = "data/new_data"
+ARCHIVE_DIR = "data/archive"
+
+EXPECTED_COLS = [
+    "MedInc", "HouseAge", "AveRooms", "AveBedrms",
+    "Population", "AveOccup", "Latitude", "Longitude", "target"
+]
 
 
 def load_raw_data_and_save():
     """
     Loads the California Housing dataset and saves it as CSV.
+    If new files exist in data/new_data/, they are appended with validation.
     Ensures the target column is named 'target'.
     """
     if not os.path.exists(RAW_DATA_PATH):
@@ -34,19 +42,48 @@ def load_raw_data_and_save():
         )
 
     df = pd.read_csv(RAW_DATA_PATH)
+
     if "MedHouseVal" in df.columns:
         df = df.rename(columns={"MedHouseVal": "target"})
+
+    # --- Append validated new data files ---
+    if os.path.exists(NEW_DATA_DIR):
+        new_files = [f for f in os.listdir(NEW_DATA_DIR) if f.endswith(".csv")]
+        if new_files:
+            os.makedirs(ARCHIVE_DIR, exist_ok=True)
+            for f in new_files:
+                fpath = os.path.join(NEW_DATA_DIR, f)
+                try:
+                    new_df = pd.read_csv(fpath)
+                    if (
+                        "target" not in new_df.columns
+                        and "MedHouseVal" in new_df.columns
+                    ):
+                        new_df.rename(
+                            columns={"MedHouseVal": "target"}, inplace=True
+                        )
+
+                    if sorted(new_df.columns) == sorted(EXPECTED_COLS):
+                        df = pd.concat([df, new_df], ignore_index=True)
+                        print(f"✅ Appended valid data from: {f}")
+                    else:
+                        print(f"❌ Skipped file due to column mismatch: {f}")
+                        print(f"   Expected: {EXPECTED_COLS}")
+                        print(f"   Found:    {list(new_df.columns)}")
+                except Exception as e:
+                    print(f"❌ Error reading {f}: {e}")
+
+                archive_path = os.path.join(ARCHIVE_DIR, f)
+                shutil.move(fpath, archive_path)
+        else:
+            print("No new data files found in data/new_data/")
+    else:
+        print("No data/new_data/ directory found.")
 
     return df
 
 
 def preprocess_data(df):
-    """
-    Preprocesses the housing data:
-    - Splits features (X) and target (y)
-    - Splits into train/test
-    - Scales numerical features
-    """
     X = df.drop("target", axis=1)
     y = df["target"]
 

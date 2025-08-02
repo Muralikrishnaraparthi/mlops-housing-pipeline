@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/107470834011746513/89339e66c1d74252a251696a4cefff80/artifacts
+end_time: 1754130514702
+entry_point_name: ''
+experiment_id: '107470834011746513'
+lifecycle_stage: active
+run_id: 89339e66c1d74252a251696a4cefff80
+run_name: DecisionTreeRegressor_California_Housing_Run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1754130511940
+status: 3
+tags: []
+user_id: mural

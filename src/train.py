@@ -4,8 +4,8 @@ import os
 import mlflow
 import mlflow.sklearn
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import (
     mean_absolute_error,
     mean_squared_error,
@@ -23,14 +23,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Dynamically choose MLflow Tracking URI
+# Set MLflow Tracking URI
 mlflow_uri = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
 os.environ["MLFLOW_TRACKING_URI"] = mlflow_uri
-logging.info(f"MLFLOW_TRACKING_URI set to: {mlflow_uri}")
-# # Set MLflow Tracking URI
-# # os.environ["MLFLOW_TRACKING_URI"] = "http://127.0.0.1:5000"
-# os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow-server:5000"
-logger.info(f"MLFLOW_TRACKING_URI set to: {os.environ['MLFLOW_TRACKING_URI']}")
+logger.info(f"MLFLOW_TRACKING_URI set to: {mlflow_uri}")
 
 mlflow.set_experiment("California Housing Training")
 
@@ -46,7 +42,9 @@ def train_and_log_model(
     """
     Train a regression model, evaluate it, and log to MLflow.
     """
-    with mlflow.start_run(run_name=f"{model_name}_California_Housing_Run"):
+    with mlflow.start_run(
+        run_name=f"{model_name}_California_Housing_Run"
+    ):
         logger.info(f"Starting MLflow run for {model_name}...")
 
         mlflow.log_params(params)
@@ -54,8 +52,8 @@ def train_and_log_model(
 
         if model_name == "LinearRegression":
             model = LinearRegression(**params)
-        elif model_name == "RandomForestRegressor":
-            model = RandomForestRegressor(**params)
+        elif model_name == "DecisionTreeRegressor":
+            model = DecisionTreeRegressor(**params)
         else:
             raise ValueError(f"Unsupported model name: {model_name}")
 
@@ -116,21 +114,20 @@ if __name__ == "__main__":
     )
     logger.info(f"Linear Regression RMSE: {lr_rmse:.4f}")
 
-    random_forest_params = {
-        "n_estimators": 100,
-        "max_depth": 10,
+    decision_tree_params = {
+        "max_depth": 6,
         "random_state": 42
     }
-    logger.info("Training Random Forest Regressor model...")
-    rf_rmse = train_and_log_model(
-        "RandomForestRegressor",
+    logger.info("Training Decision Tree Regressor model...")
+    dt_rmse = train_and_log_model(
+        "DecisionTreeRegressor",
         X_train_scaled,
         X_test_scaled,
         y_train,
         y_test,
-        random_forest_params
+        decision_tree_params
     )
-    logger.info(f"Random Forest Regressor RMSE: {rf_rmse:.4f}")
+    logger.info(f"Decision Tree Regressor RMSE: {dt_rmse:.4f}")
 
     logger.info("--- Training Complete ---")
     logger.info("To view MLflow UI, run 'mlflow ui' and visit:")
