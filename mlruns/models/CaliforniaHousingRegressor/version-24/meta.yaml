@@ -1,9 +1,9 @@
 aliases: []
 creation_timestamp: 1754832637195
-current_stage: Production
+current_stage: Staging
 deployment_job_state: null
 description: ''
-last_updated_timestamp: 1754832643318
+last_updated_timestamp: 1754833706690
 metrics: null
 model_id: ''
 name: CaliforniaHousingRegressor
