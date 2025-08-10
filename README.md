@@ -29,7 +29,8 @@ mlops-housing-pipeline/
 │       └── ci-cd.yml         # GitHub Actions pipeline
 ```
 Architecture diagram
-![alt text](image-3.png)
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/99ef124a-6b07-4ec9-a7a5-764a846aa704" />
+
 
 ---
 
