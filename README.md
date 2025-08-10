@@ -32,6 +32,10 @@ Architecture diagram
 ![alt text](image-1.png)
 
 
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/048a2f5d-822c-421e-9a16-92a52b96a062" />
+
+
+
 ---
 
 ## ⚙️ Features
