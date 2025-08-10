@@ -17,7 +17,8 @@ mlops-housing-pipeline/
 ├── deploy.sh                 # Deployment script using Docker
 ├── prometheus.yml            # Prometheus scrape config
 ├── docker-compose.yml        # Compose stack with API, Prometheus, Grafana
-├── requirements.txt
+├── Docker                    # Script that defines how to build a self-contained environment, ensuring it runs the same way everywhere.
+├── requirements.txt          # Lists all the Python libraries and their specific versions that project needs to function correctly.
 ├── data/
 │   ├── raw/                  # Initial dataset (auto-generated if missing)
 │   ├── processed/            # Stores scaler.pkl
@@ -27,6 +28,9 @@ mlops-housing-pipeline/
 │   └── workflows/
 │       └── ci-cd.yml         # GitHub Actions pipeline
 ```
+Architecture diagram
+![alt text](image-1.png)
+
 
 ---
 
@@ -94,11 +98,11 @@ Then drop any valid `.csv` into `data/new_data/`.
 
 ## 📦 API Endpoints
 
-| Endpoint        | Method | Description                         |
-|-----------------|--------|-------------------------------------|
-| `/predict`      | POST   | Predict housing price from features |
-| `/health`       | GET    | Check model/scaler health status    |
-| `/metrics`      | GET    | Prometheus metrics endpoint         |
+| Endpoint        | Method | Description                                    |
+|-----------------|--------|------------------------------------------------|
+| `/predict`      | POST   | Predict housing price from features            |
+| `/health`       | GET    | Check model/scaler health status               |
+| `/metrics`      | GET    | Prometheus metrics endpoint                    |
 | `/retrain`      | POST   | *(Optional)* Trigger model retraining manually |
 
 ---
